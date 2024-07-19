@@ -30,9 +30,13 @@ const LoginPage = () => {
         console.log('Sign Up Response:', response);
         router.push('/dashboard');
       }
-    } catch (error) {
-      setError(`Error during ${isLogin ? 'login' : 'signup'}: ${error.message}`);
-      console.error(`Error during ${isLogin ? 'login' : 'signup'}:`, error);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(`Error during ${isLogin ? 'login' : 'signup'}: ${err.message}`);
+      } else {
+        setError(`Error during ${isLogin ? 'login' : 'signup'}`);
+      }
+      console.error(`Error during ${isLogin ? 'login' : 'signup'}:`, err);
     }
   };
 
