@@ -1,51 +1,75 @@
-// src/app/login/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 
 const LoginPage = () => {
   const auth = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async () => {
-    try {
-      if (auth?.login) {
-        await auth.login(email, password);
-      }
-    } catch (error) {
-      console.error('Error logging in:', error);
+  useEffect(() => {
+    if (auth.user) {
+      router.push('/dashboard');
     }
-  };
+  }, [auth.user, router]);
 
-  const handleSignup = async () => {
+  const handleAuthAction = async () => {
+    setError(null); // Clear any previous errors
     try {
-      if (auth?.signup) {
-        await auth.signup(email, password);
+      if (isLogin && auth?.login) {
+        const response = await auth.login(email, password);
+        console.log('Login Response:', response);
+        router.push('/dashboard');
+      } else if (!isLogin && auth?.signup) {
+        const response = await auth.signup(email, password);
+        console.log('Sign Up Response:', response);
+        router.push('/dashboard');
       }
-    } catch (error) {
-      console.error('Error signing up:', error);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(`Error during ${isLogin ? 'login' : 'signup'}: ${err.message}`);
+      } else {
+        setError(`Error during ${isLogin ? 'login' : 'signup'}`);
+      }
+      console.error(`Error during ${isLogin ? 'login' : 'signup'}:`, err);
     }
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="bg-white p-8 rounded shadow-md w-96">
+      <h1 className="text-2xl font-bold mb-4">{isLogin ? 'Login' : 'Signup'}</h1>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded text-black"
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-300 rounded text-black"
       />
-      <button onClick={handleLogin}>Login</button>
-      <button onClick={handleSignup}>Signup</button>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <button
+        onClick={handleAuthAction}
+        className="w-full p-2 mb-4 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-white font-bold rounded"
+      >
+        {isLogin ? 'Login' : 'Signup'}
+      </button>
+      <button
+        onClick={() => setIsLogin(!isLogin)}
+        className="w-full p-2 text-gray-600"
+      >
+        {isLogin ? "Don't have an account? Signup" : 'Already have an account? Login'}
+      </button>
     </div>
   );
 };

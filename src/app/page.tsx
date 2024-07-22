@@ -1,16 +1,21 @@
-// src/app/page.tsx
-import Link from 'next/link';
+"use client";
 
-export default function HomePage() {
-  return (
-    <div>
-      <h1>Welcome to EntrePartner</h1>
-      <nav>
-        <ul>
-          <li><Link href="/login">Login</Link></li>
-          <li><Link href="/dashboard">Dashboard</Link></li>
-        </ul>
-      </nav>
-    </div>
-  );
-}
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import LoginPage from './login/page';
+
+const HomePage = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+
+  return <LoginPage />;
+};
+
+export default HomePage;

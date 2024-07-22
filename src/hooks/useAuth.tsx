@@ -1,8 +1,7 @@
-// src/hooks/useAuth.tsx
-"use client"; // Add this line
+"use client";
 
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { auth } from '../firebaseConfig'; // Correct path
+import { auth } from '../firebaseConfig';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
