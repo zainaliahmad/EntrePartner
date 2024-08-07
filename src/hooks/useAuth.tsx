@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { auth } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,7 +14,7 @@ import {
 
 interface AuthContextProps {
   user: User | null;
-  signup: (email: string, password: string) => Promise<UserCredential>;
+  signup: (email: string, password: string, businessDetails: any) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
 }
@@ -31,16 +32,29 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const signup = (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signup = async (email: string, password: string, businessDetails: any) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    const userDoc = doc(db, 'users', user.uid);
+    await setDoc(userDoc, {
+      email,password,
+      ...businessDetails,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    setUser(user);
+    return userCredential;
   };
 
-  const login = (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (email: string, password: string) => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    setUser(userCredential.user);
+    return userCredential;
   };
 
-  const logout = () => {
-    return signOut(auth);
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
   };
 
   useEffect(() => {

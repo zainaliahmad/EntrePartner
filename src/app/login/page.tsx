@@ -32,6 +32,9 @@ const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [dob, setDob] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,13 +79,25 @@ const LoginPage = () => {
         console.log('Login Response:', response);
         router.push('/dashboard');
       } else if (!isLogin && auth?.signup) {
-        if (!businessName || !address || !phone || !website || !ntnNumber || !companySize || !region || !city || !country || !preferredLanguage || !preferredCurrency || !timeZone || !businessGoals || (companyType === "Other" && !customCompanyType)) {
+        if (!firstName || !lastName || !dob || !email || !password || !businessName || !address || !phone || !website || !ntnNumber || !companySize || !region || !city || !country || !preferredLanguage || !preferredCurrency || !timeZone || !businessGoals || (companyType === "Other" && !customCompanyType)) {
           setError('Please fill in all required fields');
           return;
         }
+
         const response = await auth.signup(email, password);
         console.log('Sign Up Response:', response);
         const user = response.user;
+
+        // Save user details to Firestore
+        await saveUserDetails(user.uid, {
+          firstName,
+          lastName,
+          dob,
+          email,
+          password,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
 
         // Save additional business details to Firestore
         await saveBusinessDetails(user.uid, {
@@ -286,6 +301,27 @@ const LoginPage = () => {
             <div>
               <h2 className="text-xl mb-4">Account Details</h2>
               <input
+                type="text"
+                placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded text-black"
+              />
+              <input
+                type="text"
+                placeholder="Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded text-black"
+              />
+              <input
+                type="date"
+                placeholder="Date of Birth"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded text-black"
+              />
+              <input
                 type="email"
                 placeholder="Email"
                 value={email}
@@ -366,6 +402,14 @@ const LoginPage = () => {
       )}
     </div>
   );
+};
+
+const saveUserDetails = async (uid: string, details: any) => {
+  try {
+    await setDoc(doc(db, 'users', uid), details);
+  } catch (error) {
+    console.error('Error saving user details:', error);
+  }
 };
 
 const saveBusinessDetails = async (uid: string, details: any) => {
