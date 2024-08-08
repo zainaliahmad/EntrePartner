@@ -1,3 +1,4 @@
+// loginPage.js or loginPage.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { db } from '../../firebaseConfig'; // Import Firestore instance
 import { doc, setDoc } from 'firebase/firestore'; // Import Firestore functions
+import { initializeDatabase } from '../../initializeFirestore'; // Import the initialization function
 
 const companyTypes = [
   "Technology",
@@ -84,7 +86,7 @@ const LoginPage = () => {
           return;
         }
 
-        const response = await auth.signup(email, password);
+        const response = await auth.signup(email, password, null);
         console.log('Sign Up Response:', response);
         const user = response.user;
 
@@ -117,6 +119,9 @@ const LoginPage = () => {
           timeZone,
           businessGoals
         });
+
+        // Initialize Firestore database for the new business
+        await initializeDatabase(user.uid);
 
         router.push('/dashboard');
       }
